@@ -9,7 +9,7 @@ import { InterviewService } from "@/services/interviews.service";
 import { ClientService } from "@/services/clients.service";
 import { ResponseService } from "@/services/responses.service";
 import { useInterviews } from "@/contexts/interviews.context";
-import Modal from "@/components/dashboard/modal";
+import Modal from "@/components/dashboard/Modal";
 import { Gem, Plus } from "lucide-react";
 import Image from "next/image";
 
