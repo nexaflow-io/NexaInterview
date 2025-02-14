@@ -19,7 +19,7 @@ function CreateInterviewerButton() {
       console.error("Error creating interviewers:", {
         message: error?.response?.data?.details || error?.message,
         stack: error?.response?.data?.stack,
-        status: error?.response?.status
+        status: error?.response?.status,
       });
     } finally {
       setIsLoading(false);

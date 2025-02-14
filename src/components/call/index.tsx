@@ -61,7 +61,8 @@ type transcriptType = {
 
 function Call({ interview }: InterviewProps) {
   const { createResponse } = useResponses();
-  const [lastInterviewerResponse, setLastInterviewerResponse] = useState<string>("");
+  const [lastInterviewerResponse, setLastInterviewerResponse] =
+    useState<string>("");
   const [lastUserResponse, setLastUserResponse] = useState<string>("");
   const [activeTurn, setActiveTurn] = useState<string>("");
   const [Loading, setLoading] = useState(false);
@@ -79,7 +80,8 @@ function Call({ interview }: InterviewProps) {
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [interviewerImg, setInterviewerImg] = useState("");
-  const [interviewTimeDuration, setInterviewTimeDuration] = useState<string>("1");
+  const [interviewTimeDuration, setInterviewTimeDuration] =
+    useState<string>("1");
   const [time, setTime] = useState(0);
   const [currentTimeDuration, setCurrentTimeDuration] = useState<string>("0");
 
@@ -193,7 +195,7 @@ function Call({ interview }: InterviewProps) {
 
       // マイクストリームを停止
       if (stream) {
-        stream.getTracks().forEach(track => {
+        stream.getTracks().forEach((track) => {
           track.stop();
         });
         setStream(null);
@@ -204,11 +206,11 @@ function Call({ interview }: InterviewProps) {
       setIsEnded(true);
       setLoading(false);
       setIsDialogOpen(true);
-      
+
       // APIに終了を通知
       await ResponseService.saveResponse(
         { is_ended: true, tab_switch_count: tabSwitchCount },
-        callId
+        callId,
       );
     } catch (error) {
       console.error("Error ending call:", error);
@@ -250,9 +252,11 @@ function Call({ interview }: InterviewProps) {
   const startConversation = async () => {
     try {
       // まずマイクの権限を要求
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
       console.log("Microphone access granted");
-      
+
       const data = {
         mins: interview?.time_duration,
         objective: interview?.objective,
@@ -278,11 +282,13 @@ function Call({ interview }: InterviewProps) {
           { dynamic_data: data, interviewer_id: interview?.interviewer_id },
         );
         console.log("Register call response:", registerCallResponse.data);
-        
+
         if (registerCallResponse.data.registerCallResponse.call_id) {
           const callId = registerCallResponse.data.registerCallResponse.call_id;
-          const accessToken = registerCallResponse.data.registerCallResponse.access_token;
-          const sampleRate = registerCallResponse.data.registerCallResponse.sample_rate;
+          const accessToken =
+            registerCallResponse.data.registerCallResponse.access_token;
+          const sampleRate =
+            registerCallResponse.data.registerCallResponse.sample_rate;
 
           // 2. WebSocketクライアントの初期化
           const newClient = new RetellWebClient();

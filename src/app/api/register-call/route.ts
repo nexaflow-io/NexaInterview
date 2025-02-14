@@ -29,15 +29,19 @@ export async function POST(request: Request) {
 
     logger.info("Web call created successfully:", registerCallResponse);
 
-    return NextResponse.json({ 
-      registerCallResponse: {
-        call_id: registerCallResponse.call_id,
-        access_token: registerCallResponse.access_token,
-        sample_rate: registerCallResponse.sample_rate
-      }
-    }, { status: 200 });
+    return NextResponse.json(
+      {
+        registerCallResponse: {
+          call_id: registerCallResponse.call_id,
+          access_token: registerCallResponse.access_token,
+          sample_rate: registerCallResponse.sample_rate,
+        },
+      },
+      { status: 200 },
+    );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     logger.error("Error creating web call:", {
       error: errorMessage,
       details: error,

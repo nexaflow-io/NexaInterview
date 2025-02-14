@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       response_engine: { llm_id: newModel.llm_id, type: "retell-llm" },
       voice_id: "11labs-Chloe",
       agent_name: "リサ",
-      language: "ja-JP",  // 正しい言語コードを使用
+      language: "ja-JP", // 正しい言語コードを使用
     });
 
     const newInterviewer = await InterviewerService.createInterviewer({
@@ -48,7 +48,7 @@ export async function GET(req: Request) {
       response_engine: { llm_id: newModel.llm_id, type: "retell-llm" },
       voice_id: "11labs-Brian",
       agent_name: "ボブ",
-      language: "ja-JP",  // 正しい言語コードを使用
+      language: "ja-JP", // 正しい言語コードを使用
     });
 
     const newSecondInterviewer = await InterviewerService.createInterviewer({
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
 
     logger.info("Interviewers created successfully:", {
       firstAgent: newFirstAgent,
-      secondAgent: newSecondAgent
+      secondAgent: newSecondAgent,
     });
 
     return NextResponse.json(
@@ -69,17 +69,18 @@ export async function GET(req: Request) {
       { status: 200 },
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     logger.error("Error creating interviewers:", {
       error: errorMessage,
-      details: error
+      details: error,
     });
 
     return NextResponse.json(
-      { 
+      {
         error: "Failed to create interviewers",
         details: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       },
       { status: 500 },
     );
