@@ -65,7 +65,7 @@
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.49.0",
-    "retell-client-js-sdk": "^1.3.3",
+    "retell-client-js-sdk": "^2.0.5",
     "retell-sdk": "^3.12.0",
     "shadcn-ui": "^0.4.1",
     "sharp": "^0.33.2",

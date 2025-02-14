@@ -48,6 +48,7 @@ type registerCallResponseType = {
   data: {
     registerCallResponse: {
       call_id: string;
+      access_token: string;
       sample_rate: number;
     };
   };
@@ -60,8 +61,7 @@ type transcriptType = {
 
 function Call({ interview }: InterviewProps) {
   const { createResponse } = useResponses();
-  const [lastInterviewerResponse, setLastInterviewerResponse] =
-    useState<string>("");
+  const [lastInterviewerResponse, setLastInterviewerResponse] = useState<string>("");
   const [lastUserResponse, setLastUserResponse] = useState<string>("");
   const [activeTurn, setActiveTurn] = useState<string>("");
   const [Loading, setLoading] = useState(false);
@@ -73,12 +73,13 @@ function Call({ interview }: InterviewProps) {
   const [isValidEmail, setIsValidEmail] = useState<boolean>(false);
   const [isOldUser, setIsOldUser] = useState<boolean>(false);
   const [callId, setCallId] = useState<string>("");
+  const [client, setClient] = useState<RetellWebClient | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const { tabSwitchCount } = useTabSwitchPrevention();
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [interviewerImg, setInterviewerImg] = useState("");
-  const [interviewTimeDuration, setInterviewTimeDuration] =
-    useState<string>("1");
+  const [interviewTimeDuration, setInterviewTimeDuration] = useState<string>("1");
   const [time, setTime] = useState(0);
   const [currentTimeDuration, setCurrentTimeDuration] = useState<string>("0");
 
@@ -121,7 +122,7 @@ function Call({ interview }: InterviewProps) {
     }
     setCurrentTimeDuration(String(Math.floor(time / 100)));
     if (Number(currentTimeDuration) == Number(interviewTimeDuration) * 60) {
-      webClient.stopConversation();
+      webClient.stopCall();
       setIsEnded(true);
     }
 
@@ -154,6 +155,9 @@ function Call({ interview }: InterviewProps) {
       console.error("An error occurred:", error);
       setIsCalling(false);
       setIsEnded(true);
+      setLoading(false);
+      toast.error("通話中にエラーが発生しました。");
+      client.stopCall();
     });
 
     webClient.on("update", (update) => {
@@ -178,64 +182,38 @@ function Call({ interview }: InterviewProps) {
     });
   }, []);
 
-  const onEndCallClick = async () => {
-    if (isStarted) {
-      setLoading(true);
-      webClient.stopConversation();
+  const handleEndCall = async () => {
+    try {
+      // WebSocketクライアントを終了
+      if (client) {
+        await client.stopCall();
+        client.removeAllListeners();
+        setClient(null);
+      }
+
+      // マイクストリームを停止
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop();
+        });
+        setStream(null);
+      }
+
+      // 状態を更新
+      setIsCalling(false);
       setIsEnded(true);
       setLoading(false);
-    } else {
-      setIsEnded(true);
-    }
-  };
-
-  const startConversation = async () => {
-    const data = {
-      mins: interview?.time_duration,
-      objective: interview?.objective,
-      questions: interview?.questions.map((q) => q.question).join(", "),
-      name: name || "not provided",
-    };
-    setLoading(true);
-
-    const oldUserEmails: string[] = (
-      await ResponseService.getAllEmails(interview.id)
-    ).map((item) => item.email);
-    const OldUser =
-      oldUserEmails.includes(email) ||
-      (interview?.respondents && !interview?.respondents.includes(email));
-
-    if (OldUser) {
-      setIsOldUser(true);
-    } else {
-      const registerCallResponse: registerCallResponseType = await axios.post(
-        "/api/register-call",
-        { dynamic_data: data, interviewer_id: interview?.interviewer_id },
+      setIsDialogOpen(true);
+      
+      // APIに終了を通知
+      await ResponseService.saveResponse(
+        { is_ended: true, tab_switch_count: tabSwitchCount },
+        callId
       );
-      if (registerCallResponse.data.registerCallResponse.call_id) {
-        webClient
-          .startConversation({
-            callId: registerCallResponse.data.registerCallResponse.call_id,
-            sampleRate:
-              registerCallResponse.data.registerCallResponse.sample_rate,
-            enableUpdate: true,
-          })
-          .catch(console.error);
-        setIsCalling(true);
-        setIsStarted(true);
-
-        setCallId(registerCallResponse?.data?.registerCallResponse?.call_id);
-
-        const response = await createResponse({
-          interview_id: interview.id,
-          call_id: registerCallResponse.data.registerCallResponse.call_id,
-          email: email,
-          name: name,
-        });
-      }
+    } catch (error) {
+      console.error("Error ending call:", error);
+      toast.error("通話の終了中にエラーが発生しました。");
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -268,6 +246,111 @@ function Call({ interview }: InterviewProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEnded]);
+
+  const startConversation = async () => {
+    try {
+      // まずマイクの権限を要求
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("Microphone access granted");
+      
+      const data = {
+        mins: interview?.time_duration,
+        objective: interview?.objective,
+        questions: interview?.questions.map((q) => q.question).join(", "),
+        name: name || "not provided",
+      };
+      setLoading(true);
+
+      const oldUserEmails: string[] = (
+        await ResponseService.getAllEmails(interview.id)
+      ).map((item) => item.email);
+      const OldUser =
+        oldUserEmails.includes(email) ||
+        (interview?.respondents && !interview?.respondents.includes(email));
+
+      if (OldUser) {
+        setIsOldUser(true);
+      } else {
+        // 1. 通話を登録
+        console.log("Registering call...");
+        const registerCallResponse: registerCallResponseType = await axios.post(
+          "/api/register-call",
+          { dynamic_data: data, interviewer_id: interview?.interviewer_id },
+        );
+        console.log("Register call response:", registerCallResponse.data);
+        
+        if (registerCallResponse.data.registerCallResponse.call_id) {
+          const callId = registerCallResponse.data.registerCallResponse.call_id;
+          const accessToken = registerCallResponse.data.registerCallResponse.access_token;
+          const sampleRate = registerCallResponse.data.registerCallResponse.sample_rate;
+
+          // 2. WebSocketクライアントの初期化
+          const newClient = new RetellWebClient();
+
+          // 3. イベントリスナーの設定
+          newClient.on("error", (error) => {
+            console.error("WebSocket error:", error);
+            handleEndCall();
+          });
+
+          newClient.on("connectionClosed", () => {
+            console.log("WebSocket connection closed");
+            handleEndCall();
+          });
+
+          newClient.on("update", (update) => {
+            const roleContents: { [key: string]: string } = {};
+            if (update.turntaking === "agent_turn") {
+              setActiveTurn("agent");
+            } else if (update.turntaking === "user_turn") {
+              setActiveTurn("user");
+            }
+
+            if (update.transcript) {
+              const transcripts: transcriptType[] = update.transcript;
+              transcripts.forEach((transcript) => {
+                roleContents[transcript?.role] = transcript?.content;
+              });
+              setLastInterviewerResponse(roleContents["agent"]);
+              setLastUserResponse(roleContents["user"]);
+            }
+          });
+
+          // 4. WebSocket接続を開始
+          console.log("Starting WebSocket connection with access token...");
+          await newClient.startCall({
+            accessToken: accessToken,
+            sampleRate: sampleRate,
+            captureDeviceId: "default",
+          });
+
+          // 5. 状態を更新
+          setStream(mediaStream);
+          setClient(newClient);
+          setIsCalling(true);
+          setIsStarted(true);
+          setCallId(callId);
+
+          const response = await createResponse({
+            interview_id: interview.id,
+            call_id: callId,
+            email: email,
+            name: name,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error starting conversation:", error);
+      if (error instanceof Error) {
+        toast.error(`通話の開始中にエラーが発生しました: ${error.message}`);
+      } else {
+        toast.error("通話の開始中にエラーが発生しました。");
+      }
+      setLoading(false);
+      setIsEnded(true);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -394,7 +477,7 @@ function Call({ interview }: InterviewProps) {
                         <AlertDialogAction
                           className="bg-indigo-600 hover:bg-indigo-800"
                           onClick={async () => {
-                            await onEndCallClick();
+                            await handleEndCall();
                           }}
                         >
                           Continue
@@ -480,7 +563,7 @@ function Call({ interview }: InterviewProps) {
                       <AlertDialogAction
                         className="bg-indigo-600 hover:bg-indigo-800"
                         onClick={async () => {
-                          await onEndCallClick();
+                          await handleEndCall();
                         }}
                       >
                         Continue

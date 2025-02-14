@@ -1,62 +1,65 @@
 export const SYSTEM_PROMPT =
-  "You are an expert in analyzing interview transcripts. You must only use the main questions provided and not generate or infer additional questions.";
+  "あなたは面接の書き起こしを分析する専門家です。提供された主要な質問のみを使用し、追加の質問を生成または推測してはいけません。";
 
 export const getInterviewAnalyticsPrompt = (
   interviewTranscript: string,
   mainInterviewQuestions: string,
-) => `Analyse the following interview transcript and provide structured feedback:
+) => `以下の面接の書き起こしを分析し、構造化されたフィードバックを提供してください：
 
 ###
-Transcript: ${interviewTranscript}
+書き起こし: ${interviewTranscript}
 
-Main Interview Questions:
+主な面接質問：
 ${mainInterviewQuestions}
 
 
-Based on this transcript and the provided main interview questions, generate the following analytics in JSON format:
-1. Overall Score (0-100) and Overall Feedback (60 words) - take into account the following factors:
-   - Communication Skills: Evaluate the use of language, grammar, and vocabulary. Assess if the interviewee communicated effectively and clearly.
-   - Time Taken to Answer: Consider if the interviewee answered promptly or took too long. Note if they were concise or tended to ramble.
-   - Confidence: Assess the interviewee's confidence level. Were they assertive and self-assured, or did they seem hesitant and unsure?
-   - Clarity: Evaluate the clarity of their answers. Were their responses well-structured and easy to understand?
-   - Attitude: Consider the interviewee's attitude towards the interview and questions. Were they positive, respectful, and engaged?
-   - Relevance of Answers: Determine if the interviewee's responses are relevant to the questions asked. Assess if they stayed on topic or veered off track.
-   - Depth of Knowledge: Evaluate the interviewee's depth of understanding and knowledge in the subject matter. Look for detailed and insightful answers.
-   - Problem-Solving Ability: Consider how the interviewee approaches problem-solving questions. Assess their logical reasoning and analytical skills.
-   - Examples and Evidence: Note if the interviewee provides concrete examples or evidence to support their answers. This can indicate experience and credibility.
-   - Listening Skills: Look for signs that the interviewee is actively listening and responding appropriately to follow-up questions.
-   - Consistency: Evaluate if the interviewee's answers are consistent throughout the interview or if they contradict themselves.
-   - Adaptability: Assess how well the interviewee adapts to different types of questions, including unexpected or challenging ones.
+この書き起こしと提供された主な面接質問に基づいて、以下の分析をJSON形式で生成してください：
+1. 総合評価（0-100）と総合フィードバック（60文字）- 以下の要因を考慮してください：
+   - コミュニケーションスキル：言語、文法、語彙の使用を評価します。面接者が効果的かつ明確にコミュニケーションを取れたかを評価します。
+   - 回答時間：面接者が迅速に回答したか、時間がかかりすぎたかを考慮します。簡潔だったか、冗長になる傾向があったかを確認します。
+   - 自信：面接者の自信のレベルを評価します。断定的で自信に満ちていたか、躊躇して不確かな様子だったかを確認します。
+   - 明確さ：回答の明確さを評価します。回答が構造化されており、理解しやすかったかを確認します。
+   - 態度：面接と質問に対する面接者の態度を考慮します。前向きで、敬意を持って、積極的に取り組んでいたかを確認します。
+   - 回答の関連性：面接者の回答が質問に関連しているかを判断します。話題に沿っていたか、それてしまったかを評価します。
+   - 知識の深さ：面接者の主題に関する理解と知識の深さを評価します。詳細で洞察力のある回答を探します。
+   - 問題解決能力：面接者が問題解決の質問にどのようにアプローチしたかを考慮します。論理的思考と分析スキルを評価します。
+   - 例示と証拠：面接者が回答を裏付ける具体的な例や証拠を提供したかを確認します。これは経験と信頼性を示す指標となります。
+   - 傾聴スキル：面接者が積極的に聞き、フォローアップ質問に適切に応答しているかを確認します。
+   - 一貫性：面接者の回答が面接全体を通じて一貫しているか、矛盾がないかを評価します。
+   - 適応性：面接者が予期せぬ質問や難しい質問を含む、異なるタイプの質問にどれだけうまく適応したかを評価します。
 
-2. Communication Skills: Score (0-10) and Feedback (60 words). Rating system and guidleines for communication skills is as follwing.
-    - 10: Fully operational command, use of English is appropriate, accurate, fluent, shows complete understanding.
-    - 09: Fully operational command with occasional inaccuracies and inappropriate usage. May misunderstand unfamiliar situations but handles complex arguments well.
-    - 08: Operational command with occasional inaccuracies, inappropriate usage, and misunderstandings. Handles complex language and detailed reasoning well.
-    - 07: Effective command despite some inaccuracies, inappropriate usage, and misunderstandings. Can use and understand reasonably complex language, especially in familiar situations.
-    - 06: Partial command, copes with overall meaning, frequent mistakes. Handles basic communication in their field.
-    - 05: Basic competence limited to familiar situations with frequent problems in understanding and expression.
-    - 04: Understands only general meaning in very familiar situations, with frequent communication breakdowns.
-    - 03: Has great difficulty understanding spoken English.
-    - 02: Has no ability to use the language except a few isolated words.
-    - 01: Did not answer the questions.
-3. Summary for each main interview question: ${mainInterviewQuestions}
-   - Use ONLY the main questions provided, it should output all the questions with the numbers even if it's not found in the transcript.
-   - Follow the below rules when outputing the question and summary
-      - If a main interview question isn't found in the transcript, then output the main question and give the summary as "Not Asked"
-      - If a main interview question is found in the transcript but an answer couldn't be found, then output the main question and give the summary as "Not Answered"
-      - If a main interview question is found in the transcript and an answer can also be found, then,
-          - For each main question (q), provide a summary that includes:
-            a) The candidate's response to the main question
-            b) Any follow-up questions that were asked related to this main question and their answers
-          - The summary should be a cohesive paragraph encompassing all related information for each main question
-4. Create a 10 to 15 words summary regarding the soft skills considering factors such as confidence, leadership, adaptability, critical thinking and decision making.
-Ensure the output is in valid JSON format with the following structure:
+2. コミュニケーションスキル：スコア（0-10）とフィードバック（60文字）。コミュニケーションスキルの評価システムと指針は以下の通りです：
+    - 10: 完全に機能するコマンド、言語の使用は適切、正確、流暢、完全に理解しています。
+    - 09: 完全に機能するコマンドですが、時々不正確な使用や誤解があります。未知の状況では誤解するかもしれませんが、複雑な議論をうまく扱います。
+    - 08: 運用コマンドですが、時々不正確な使用や誤解があります。複雑な言語や詳細な推論をうまく扱います。
+    - 07: 有効なコマンドですが、不正確な使用や誤解があります。比較的複雑な言語や特定の状況での理解が可能です。
+    - 06: 部分的なコマンド、全体的な意味を理解できますが、頻繁に誤解や問題が発生します。基本的なコミュニケーションを取り扱います。
+    - 05: 基本的な能力ですが、非常に限られた状況でのみ使用可能です。理解や表現に頻繁な問題が発生します。
+    - 04: 非常に限られた状況でのみ一般的な意味を理解できますが、コミュニケーションに頻繁な問題が発生します。
+    - 03: 言語を理解するのに大きな困難があります。
+    - 02: ほんのわずかな単語しか使用できません。
+    - 01: 質問に回答しませんでした。
+
+3. 主な面接質問ごとの要約: ${mainInterviewQuestions}
+   - 以下のルールに従って、質問と要約を出力してください。
+      - 主な面接質問が書き起こしにない場合、主な質問を出力し、要約を「質問されませんでした」とします。
+      - 主な面接質問が書き起こしにあるが、回答が見つからない場合、主な質問を出力し、要約を「回答なし」とします。
+      - 主な面接質問が書き起こしにある場合、回答も見つかった場合、
+          - 各主な質問（q）について、以下を含む要約を提供します。
+            a) 面接者の主な質問への回答
+            b) その主な質問に関連するフォローアップ質問と回答
+          - 要約は、各主な質問に関するすべての関連情報を包含する一つの段落として提供します。
+
+4. コミュニケーションスキル、リーダーシップ、適応性、批判的思考、意思決定などの要素を考慮して、ソフトスキルに関する10〜15語の要約を生成してください。
+
+出力は、以下の構造で有効なJSON形式である必要があります：
 {
   "overallScore": number,
   "overallFeedback": string,
-  "communication": { "score": number, "feedback": string },
+  "communicationScore": number,
+  "communicationFeedback": string,
   "questionSummaries": [{ "question": string, "summary": string }],
-  "softSkillSummary: string
+  "softSkillSummary": string
 }
 
-IMPORTANT: Only use the main questions provided. Do not generate or infer additional questions such as follow-up questions.`;
+重要: 主な質問のみを使用してください。フォローアップ質問などの追加の質問を生成または推測しないでください。`;

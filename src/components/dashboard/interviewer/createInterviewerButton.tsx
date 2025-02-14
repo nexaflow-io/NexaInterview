@@ -11,10 +11,19 @@ function CreateInterviewerButton() {
 
   const createInterviewers = async () => {
     setIsLoading(true);
-    const response = await axios.get("/api/create-interviewer", {});
-    console.log(response);
-    setIsLoading(false);
-    InterviewerService.getAllInterviewers();
+    try {
+      const response = await axios.get("/api/create-interviewer", {});
+      console.log("Interviewers created successfully:", response.data);
+      InterviewerService.getAllInterviewers();
+    } catch (error) {
+      console.error("Error creating interviewers:", {
+        message: error?.response?.data?.details || error?.message,
+        stack: error?.response?.data?.stack,
+        status: error?.response?.status
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
