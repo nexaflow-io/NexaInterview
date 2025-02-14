@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
-import Modal from "@/components/dashboard/modal";
+import Modal from "@/components/dashboard/Modal";
 
 interface SharePopupProps {
   open: boolean;

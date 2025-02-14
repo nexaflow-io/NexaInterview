@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import CreateInterviewModal from "@/components/dashboard/interview/createInterviewModal";
-import Modal from "@/components/dashboard/modal";
+import Modal from "@/components/dashboard/Modal";
 
 function CreateInterviewCard() {
   const [open, setOpen] = useState(false);
